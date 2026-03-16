@@ -2812,6 +2812,11 @@ def fsanitize_undefined_strip_path_components_EQ : Joined<["-"], "fsanitize-unde
   HelpText<"Strip (or keep only, if negative) a given number of path components "
            "when emitting check metadata.">,
   MarshallingInfoInt<CodeGenOpts<"EmitCheckPathComponentsToStrip">, "0", "int">;
+def fsanitize_address_strip_path_components_EQ : Joined<["-"], "fsanitize-address-strip-path-components=">,
+  Group<f_clang_Group>, Visibility<[ClangOption, CC1Option]>, MetaVarName<"<number>">,
+  HelpText<"Strip (or keep only, if negative) a given number of path components "
+           "when emitting AddressSanitizer global metadata.">,
+  MarshallingInfoInt<CodeGenOpts<"SanitizeAddressPathComponentsToStrip">, "0", "int">;
 def fsanitize_skip_hot_cutoff_EQ
     : CommaJoined<["-"], "fsanitize-skip-hot-cutoff=">,
       Group<f_clang_Group>,

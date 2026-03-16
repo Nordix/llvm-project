@@ -7594,6 +7594,8 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
   Args.AddLastArg(CmdArgs, options::OPT_fshow_overloads_EQ);
   Args.AddLastArg(CmdArgs,
                   options::OPT_fsanitize_undefined_strip_path_components_EQ);
+  Args.AddLastArg(CmdArgs,
+                  options::OPT_fsanitize_address_strip_path_components_EQ);
 
   // -fdollars-in-identifiers default varies depending on platform and
   // language; only pass if specified.
