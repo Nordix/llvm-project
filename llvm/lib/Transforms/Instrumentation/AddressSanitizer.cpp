@@ -2826,7 +2826,6 @@ GlobalVariable *ModuleAddressSanitizer::getOrCreateModuleName() {
     ModuleName =
         createPrivateGlobalForString(M, ModuleNameStr,
                                      /*AllowMerging*/ false, genName("module"));
-
   }
   return ModuleName;
 }
