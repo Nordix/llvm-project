@@ -71,6 +71,7 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/MathExtras.h"
+#include "llvm/Support/Path.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/TargetParser/Triple.h"
 #include "llvm/Transforms/Instrumentation/AddressSanitizerCommon.h"
@@ -932,7 +933,8 @@ public:
                          bool CompileKernel = false, bool Recover = false,
                          bool UseGlobalsGC = true, bool UseOdrIndicator = true,
                          AsanDtorKind DestructorKind = AsanDtorKind::Global,
-                         AsanCtorKind ConstructorKind = AsanCtorKind::Global)
+                         AsanCtorKind ConstructorKind = AsanCtorKind::Global,
+                         int PathComponentsToStrip = 0)
       : M(M),
         CompileKernel(ClEnableKasan.getNumOccurrences() > 0 ? ClEnableKasan
                                                             : CompileKernel),
@@ -959,7 +961,8 @@ public:
         DestructorKind(DestructorKind),
         ConstructorKind(ClConstructorKind.getNumOccurrences() > 0
                             ? ClConstructorKind
-                            : ConstructorKind) {
+                            : ConstructorKind),
+        PathComponentsToStrip(PathComponentsToStrip) {
     C = &(M.getContext());
     int LongSize = M.getDataLayout().getPointerSizeInBits();
     IntptrTy = Type::getIntNTy(*C, LongSize);
@@ -1022,6 +1025,7 @@ private:
   bool UseCtorComdat;
   AsanDtorKind DestructorKind;
   AsanCtorKind ConstructorKind;
+  int PathComponentsToStrip;
   Type *IntptrTy;
   PointerType *PtrTy;
   LLVMContext *C;
@@ -1309,7 +1313,8 @@ PreservedAnalyses AddressSanitizerPass::run(Module &M,
 
   ModuleAddressSanitizer ModuleSanitizer(
       M, Options.InsertVersionCheck, Options.CompileKernel, Options.Recover,
-      UseGlobalGC, UseOdrIndicator, DestructorKind, ConstructorKind);
+      UseGlobalGC, UseOdrIndicator, DestructorKind, ConstructorKind,
+      Options.PathComponentsToStrip);
   bool Modified = false;
   auto &FAM = MAM.getResult<FunctionAnalysisManagerModuleProxy>(M).getManager();
   const StackSafetyGlobalInfo *const SSGI =
@@ -2808,9 +2813,31 @@ GlobalVariable *ModuleAddressSanitizer::getOrCreateModuleName() {
   if (!ModuleName) {
     // We shouldn't merge same module names, as this string serves as unique
     // module ID in runtime.
-    ModuleName =
-        createPrivateGlobalForString(M, M.getModuleIdentifier(),
-                                     /*AllowMerging*/ false, genName("module"));
+    StringRef ModuleNameStr = M.getModuleIdentifier();
+
+    if (PathComponentsToStrip < 0) {
+      int PathComponentsToKeep = -PathComponentsToStrip;
+      auto I = sys::path::rbegin(ModuleNameStr);
+      auto E = sys::path::rend(ModuleNameStr);
+      while (I != E && --PathComponentsToKeep)
+        ++I;
+      ModuleNameStr = ModuleNameStr.substr(I - E);
+    } else if (PathComponentsToStrip > 0) {
+      int ToStrip = PathComponentsToStrip;
+      auto I = sys::path::begin(ModuleNameStr);
+      auto E = sys::path::end(ModuleNameStr);
+      while (I != E && ToStrip--)
+        ++I;
+      if (I != E)
+        ModuleNameStr =
+            ModuleNameStr.substr(I - sys::path::begin(ModuleNameStr));
+      else
+        ModuleNameStr = sys::path::filename(ModuleNameStr);
+    }
+
+    ModuleName = createPrivateGlobalForString(M, ModuleNameStr,
+                                              /*AllowMerging*/ false,
+                                              genName("module"));
   }
   return ModuleName;
 }

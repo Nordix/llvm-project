@@ -30,6 +30,7 @@ struct AddressSanitizerOptions {
   int InstrumentationWithCallsThreshold = 7000;
   uint32_t MaxInlinePoisoningSize = 64;
   bool InsertVersionCheck = true;
+  int PathComponentsToStrip = 0;
 };
 
 /// Public interface to the address sanitizer module pass for instrumenting code

@@ -949,6 +949,13 @@ Expected<AddressSanitizerOptions> parseASanPassOptions(StringRef Params) {
       Result.CompileKernel = true;
     } else if (ParamName == "use-after-scope") {
       Result.UseAfterScope = true;
+    } else if (ParamName.consume_front("strip-path-components=")) {
+      if (ParamName.getAsInteger(0, Result.PathComponentsToStrip))
+        return make_error<StringError>(
+            formatv("invalid AddressSanitizer strip-path-components value '{}'",
+                    ParamName)
+                .str(),
+            inconvertibleErrorCode());
     } else {
       return make_error<StringError>(
           formatv("invalid AddressSanitizer pass parameter '{}'", ParamName)
