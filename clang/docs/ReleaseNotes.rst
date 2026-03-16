@@ -393,6 +393,10 @@ Static Analyzer
 Sanitizers
 ----------
 
+- Added ``-fsanitize-address-strip-path-components=N`` option to strip path
+  components from source file paths embedded in AddressSanitizer global
+  metadata, enabling reproducible builds.
+
 Python Binding Changes
 ----------------------
 - Add deprecation warnings to ``CompletionChunk.isKind...`` methods.

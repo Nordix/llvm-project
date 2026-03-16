@@ -5276,6 +5276,8 @@ Execute ``clang-cl /?`` to see a list of supported options:
       -fsanitize-recover=<value>
                               Enable recovery for specified sanitizers
       -fsanitize-stats        Enable sanitizer statistics gathering.
+      -fsanitize-address-strip-path-components=<number>
+                              Strip (or keep only, if negative) a given number of path components when emitting AddressSanitizer global metadata.
       -fsanitize-thread-atomics
                               Enable atomic operations instrumentation in ThreadSanitizer (default)
       -fsanitize-thread-func-entry-exit

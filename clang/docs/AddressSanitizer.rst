@@ -405,6 +405,23 @@ run-time performance, which leads to increased binary size. Using the
 flag forces all code instrumentation to be outlined, which reduces the size
 of the generated code, but also reduces the run-time performance.
 
+Stripping path components
+-------------------------
+
+AddressSanitizer embeds the source file path in global metadata. For
+reproducible builds, the option ``-fsanitize-address-strip-path-components=N``
+can be used to trim this information. If ``N`` is positive, the first ``N``
+path components will be stripped. If ``N`` is negative, only the last ``N``
+components will be kept.
+
+For a file called ``/code/library/file.cpp``:
+
+* Default (``-fsanitize-address-strip-path-components=0``): ``/code/library/file.cpp``
+* ``-fsanitize-address-strip-path-components=1``: ``code/library/file.cpp``
+* ``-fsanitize-address-strip-path-components=2``: ``library/file.cpp``
+* ``-fsanitize-address-strip-path-components=-1``: ``file.cpp``
+* ``-fsanitize-address-strip-path-components=-2``: ``library/file.cpp``
+
 Limitations
 ===========
 
