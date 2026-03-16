@@ -332,7 +332,8 @@ static void addCoveragePrefixMapArg(const Driver &D, const ArgList &Args,
 /// Add a CC1 option to specify the sanitizer file path prefix map.
 static void addSanitizePrefixMapArg(const Driver &D, const ArgList &Args,
                                     ArgStringList &CmdArgs) {
-  for (const Arg *A : Args.filtered(options::OPT_fsanitize_prefix_map_EQ)) {
+  for (const Arg *A : Args.filtered(options::OPT_ffile_prefix_map_EQ,
+                                    options::OPT_fsanitize_prefix_map_EQ)) {
     StringRef Map = A->getValue();
     if (!Map.contains('='))
       D.Diag(diag::err_drv_invalid_argument_to_option)

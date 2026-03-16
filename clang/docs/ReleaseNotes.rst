@@ -394,7 +394,8 @@ Sanitizers
 ----------
 
 - Added ``-fsanitize-prefix-map=OLD=NEW`` option to remap source file paths
-  in sanitizer metadata, enabling reproducible builds.
+  in sanitizer metadata, enabling reproducible builds. This flag is also
+  implied by ``-ffile-prefix-map``.
 
 Python Binding Changes
 ----------------------
