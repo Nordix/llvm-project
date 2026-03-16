@@ -5273,6 +5273,8 @@ Execute ``clang-cl /?`` to see a list of supported options:
                               Enable origins tracking in MemorySanitizer
       -fsanitize-memory-use-after-dtor
                               Enable use-after-destroy detection in MemorySanitizer
+      -fsanitize-prefix-map=<old>=<new>
+                              Remap file source paths in sanitizer metadata.
       -fsanitize-recover=<value>
                               Enable recovery for specified sanitizers
       -fsanitize-stats        Enable sanitizer statistics gathering.

@@ -393,6 +393,9 @@ Static Analyzer
 Sanitizers
 ----------
 
+- Added ``-fsanitize-prefix-map=OLD=NEW`` option to remap source file paths
+  in sanitizer metadata, enabling reproducible builds.
+
 Python Binding Changes
 ----------------------
 - Add deprecation warnings to ``CompletionChunk.isKind...`` methods.
