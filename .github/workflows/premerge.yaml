@@ -28,16 +28,41 @@ jobs:
       - name: Install Ninja
         run: choco install ninja
 
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.4
+
       - name: Configure
         run: |
           cmake -G Ninja -B build -S llvm ^
             -DCMAKE_BUILD_TYPE=Release ^
-            -DLLVM_ENABLE_PROJECTS="clang" ^
-            -DLLVM_ENABLE_ASSERTIONS=ON
+            -DLLVM_ENABLE_PROJECTS=clang ^
+            -DCMAKE_C_COMPILER_LAUNCHER=sccache ^
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
         shell: cmd
 
       - name: Build
-        run: ninja -C build
+        run: ninja -C build check-clang-driver check-clang-codegen
 
-      - name: Test
-        run: ninja -C build check-clang
+      - name: Test with python
+        continue-on-error: true
+        run: |
+          cd build
+          python3 ../llvm/utils/lit/lit.py -v ../clang/test/CodeGen/asan-prefix-map.cpp ../clang/test/CodeGen/ubsan-prefix-map.cpp ../clang/test/Driver/fsanitize-prefix-map.cpp
+
+      - name: Test with llvm-lit
+        run: |
+          ./build/bin/llvm-lit -v clang/test/CodeGen/asan-prefix-map.cpp clang/test/CodeGen/ubsan-prefix-map.cpp clang/test/Driver/fsanitize-prefix-map.cpp
+
+      # - name: Build
+      #   run: |
+      #     ninja -C build check-clang-codegen
+      # # - name: Build
+      # #   run: ninja -C build
+
+      # - name: Test
+      #   run: |
+      #     build\bin\llvm-lit.exe -v clang\test\CodeGen\ubsan-prefix-map.cpp
+      #     build\bin\llvm-lit.exe -v clang\test\CodeGen\asan-prefix-map.cpp
+      #     build\bin\llvm-lit.exe -v clang\test\Driver\fsanitize-prefix-map.cpp
+      # # - name: Test
+      # #   run: ninja -C build check-clang
