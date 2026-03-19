@@ -71,6 +71,7 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/MathExtras.h"
+#include "llvm/Support/Path.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/TargetParser/Triple.h"
 #include "llvm/Transforms/Instrumentation/AddressSanitizerCommon.h"
@@ -932,7 +933,8 @@ public:
                          bool CompileKernel = false, bool Recover = false,
                          bool UseGlobalsGC = true, bool UseOdrIndicator = true,
                          AsanDtorKind DestructorKind = AsanDtorKind::Global,
-                         AsanCtorKind ConstructorKind = AsanCtorKind::Global)
+                         AsanCtorKind ConstructorKind = AsanCtorKind::Global,
+                         StringRef CompilationDir = "")
       : M(M),
         CompileKernel(ClEnableKasan.getNumOccurrences() > 0 ? ClEnableKasan
                                                             : CompileKernel),
@@ -959,7 +961,8 @@ public:
         DestructorKind(DestructorKind),
         ConstructorKind(ClConstructorKind.getNumOccurrences() > 0
                             ? ClConstructorKind
-                            : ConstructorKind) {
+                            : ConstructorKind),
+        CompilationDir(CompilationDir) {
     C = &(M.getContext());
     int LongSize = M.getDataLayout().getPointerSizeInBits();
     IntptrTy = Type::getIntNTy(*C, LongSize);
@@ -1039,6 +1042,7 @@ private:
   Function *AsanCtorFunction = nullptr;
   Function *AsanDtorFunction = nullptr;
   GlobalVariable *ModuleName = nullptr;
+  std::string CompilationDir;
 };
 
 // Stack poisoning does not play well with exception handling.
@@ -1309,7 +1313,8 @@ PreservedAnalyses AddressSanitizerPass::run(Module &M,
 
   ModuleAddressSanitizer ModuleSanitizer(
       M, Options.InsertVersionCheck, Options.CompileKernel, Options.Recover,
-      UseGlobalGC, UseOdrIndicator, DestructorKind, ConstructorKind);
+      UseGlobalGC, UseOdrIndicator, DestructorKind, ConstructorKind,
+      Options.CompilationDir);
   bool Modified = false;
   auto &FAM = MAM.getResult<FunctionAnalysisManagerModuleProxy>(M).getManager();
   const StackSafetyGlobalInfo *const SSGI =
@@ -2808,8 +2813,17 @@ GlobalVariable *ModuleAddressSanitizer::getOrCreateModuleName() {
   if (!ModuleName) {
     // We shouldn't merge same module names, as this string serves as unique
     // module ID in runtime.
+    std::string ModuleNameStr = M.getModuleIdentifier();
+
+    // Apply compilation dir remapping.
+    if (!CompilationDir.empty()) {
+      SmallString<256> Path(ModuleNameStr);
+      sys::path::replace_path_prefix(Path, CompilationDir, "");
+      ModuleNameStr = std::string(Path);
+    }
+
     ModuleName =
-        createPrivateGlobalForString(M, M.getModuleIdentifier(),
+        createPrivateGlobalForString(M, ModuleNameStr,
                                      /*AllowMerging*/ false, genName("module"));
   }
   return ModuleName;
