@@ -3963,6 +3963,14 @@ llvm::Constant *CodeGenFunction::EmitCheckSourceLocation(SourceLocation Loc) {
   if (PLoc.isValid()) {
     StringRef FilenameString = PLoc.getFilename();
 
+    // Apply sanitize compilation dir remapping.
+    llvm::SmallString<256> FilePath(FilenameString);
+    const std::string &CompDir = CGM.getCodeGenOpts().SanitizeCompilationDir;
+    if (!CompDir.empty())
+      llvm::sys::path::replace_path_prefix(FilePath, CompDir, "");
+    std::string RemappedFilename = std::string(FilePath);
+    FilenameString = RemappedFilename;
+
     int PathComponentsToStrip =
         CGM.getCodeGenOpts().EmitCheckPathComponentsToStrip;
     if (PathComponentsToStrip < 0) {

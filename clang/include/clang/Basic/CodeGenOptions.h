@@ -247,6 +247,9 @@ public:
   /// The string to embed in coverage mapping as the current working directory.
   std::string CoverageCompilationDir;
 
+  /// The string to embed in sanitizer metadata as the current working directory.
+  std::string SanitizeCompilationDir;
+
   /// The string to embed in the debug information for the compile unit, if
   /// non-empty.
   std::string DwarfDebugFlags;
