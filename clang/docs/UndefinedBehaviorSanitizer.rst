@@ -476,6 +476,10 @@ information. If ``N`` is positive, file information emitted by
 UndefinedBehaviorSanitizer will drop the first ``N`` components from the file
 path. If ``N`` is negative, the last ``N`` components will be kept.
 
+Alternatively, ``-fsanitize-compilation-dir=<dir>`` (or
+``-ffile-compilation-dir=<dir>``) can be used to strip a specific directory
+prefix from filenames in check data, which is useful for reproducible builds.
+
 Example
 -------
 

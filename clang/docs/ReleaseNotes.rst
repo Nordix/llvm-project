@@ -148,6 +148,11 @@ New Compiler Flags
   can only generate the reduced BMI as a by-product, e.g, an object files or
   a full BMI.
 
+- New option ``-fsanitize-compilation-dir=`` to set the compilation directory
+  used to strip path prefixes from filenames in sanitizer metadata (UBSan
+  diagnostics and ASan module names). This is also implied by
+  ``-ffile-compilation-dir=``.
+
 Deprecated Compiler Flags
 -------------------------
 

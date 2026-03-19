@@ -2277,6 +2277,14 @@ are listed below.
 
    See :doc: `AddressSanitizer` for more details.
 
+.. option:: -fsanitize-compilation-dir=<dir>
+
+   Set the compilation directory used to strip path prefixes from filenames
+   in sanitizer metadata, including UBSan diagnostic source locations and
+   ASan module names. This can be used to achieve reproducible builds
+   regardless of the build directory. Also implied by
+   ``-ffile-compilation-dir=``.
+
 .. option:: -f[no-]sanitize-type-outline-instrumentation
 
    Controls how type sanitizer code is generated. If enabled will always use

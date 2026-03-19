@@ -47,6 +47,12 @@ in error messages add ``-fno-omit-frame-pointer``.  To get perfect stack traces
 you may need to disable inlining (just use ``-O1``) and tail call elimination
 (``-fno-optimize-sibling-calls``).
 
+To produce reproducible builds that do not embed absolute paths in ASan
+metadata, use ``-fsanitize-compilation-dir=<dir>`` (or
+``-ffile-compilation-dir=<dir>`` which also sets it for debug info and
+coverage). This strips the given directory prefix from module names in
+instrumented code.
+
 .. code-block:: console
 
     % cat example_UseAfterFree.cc
