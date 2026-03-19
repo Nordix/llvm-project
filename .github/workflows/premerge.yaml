@@ -16,6 +16,9 @@ on:
     # branches:
     #   - 'release/**'
 
+env:
+  SCCACHE_GHA_ENABLED: "true"
+
 jobs:
   build-windows:
     runs-on: windows-2022
@@ -25,11 +28,11 @@ jobs:
       - name: Setup VS environment
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Install Ninja
-        run: choco install ninja
-
       - name: Setup sccache
-        uses: mozilla-actions/sccache-action@v0.0.4
+        uses: mozilla-actions/sccache-action@v0.0.9
+
+      - name: Tell sccache to use Actions cache
+        run: Add-Content -Path $env:GITHUB_ENV -Value "SCCACHE_GHA_ENABLED=true"
 
       - name: Configure
         run: |
@@ -43,11 +46,13 @@ jobs:
       - name: Build all
         run: ninja -C build
 
-      - name: Build
-        run: ninja -C build check-clang-driver check-clang-codegen
-
       - name: Test with llvm-lit
+        continue-on-error: true
         run: |
           ./build/bin/llvm-lit -v clang/test/Driver/fsanitize-compilation-dir.c
           ./build/bin/llvm-lit -v clang/test/CodeGen/ubsan-sanitize-compilation-dir.cpp
           ./build/bin/llvm-lit -v clang/test/CodeGen/asan-sanitize-compilation-dir.c
+
+      - name: Build
+        run: ninja -C build check-clang-driver check-clang-codegen
+
