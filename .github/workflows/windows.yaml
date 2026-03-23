@@ -1,0 +1,63 @@
+name: Own CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+
+env:
+  SCCACHE_GHA_ENABLED: "true"
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup VS environment
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.9
+
+        # Building projects: clang;clang-tools-extra;lld;llvm;mlir;polly
+        # Running project checks targets: check-clang check-clang-tools check-lld check-llvm check-mlir check-polly
+        # Building runtimes: compiler-rt
+        # Running runtimes checks targets: check-compiler-rt
+      - name: Configure
+        run: |
+          cmake -G Ninja -B build -S llvm ^
+            -DCMAKE_BUILD_TYPE=Release ^
+            -DLLVM_ENABLE_PROJECTS=clang ^
+            -DCMAKE_C_COMPILER_LAUNCHER=sccache ^
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache ^
+            -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld;llvm;mlir;polly" ^
+            -DLLVM_ENABLE_RUNTIMES="compiler-rt"
+        shell: cmd
+
+      - name: Build
+        run: ninja -C build
+
+      - name: Test check-clang
+        continue-on-error: true
+        run: ninja -C build check-clang
+      - name: Test check-clang-tools
+        continue-on-error: true
+        run: ninja -C build check-clang-tools
+      - name: Test check-lld
+        continue-on-error: true
+        run: ninja -C build check-lld
+      - name: Test check-llvm
+        continue-on-error: true
+        run: ninja -C build check-llvm
+      - name: Test check-mlir
+        continue-on-error: true
+        run: ninja -C build check-mlir
+      - name: Test check-polly
+        continue-on-error: true
+        run: ninja -C build check-polly
+      - name: Test check-compiler-rt
+        continue-on-error: true
+        run: ninja -C build check-compiler-rt
